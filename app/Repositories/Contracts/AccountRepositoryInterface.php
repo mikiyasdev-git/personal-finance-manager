@@ -1,0 +1,19 @@
+<?php
+
+namespace App\Repositories\Contracts;
+
+use App\Models\Account;
+use Illuminate\Database\Eloquent\Collection;
+
+interface AccountRepositoryInterface
+{
+    public function getAllByUser(int $userId): Collection;
+
+    public function findById(int $id, int $userId): ?Account;
+
+    public function create(array $data): Account;
+
+    public function update(Account $account, array $data): Account;
+
+    public function delete(Account $account): bool;
+}
