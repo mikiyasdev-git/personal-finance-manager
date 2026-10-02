@@ -15,24 +15,31 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Set application directory
+# Application directory
 WORKDIR /var/www/html
 
-# Copy Composer files first for better Docker caching
+# Copy Composer files first
 COPY composer.json composer.lock ./
 
-# Install production PHP dependencies
+# Install PHP dependencies without running Laravel scripts yet
 RUN composer install \
     --no-dev \
     --no-interaction \
     --prefer-dist \
+    --no-scripts \
     --optimize-autoloader
 
-# Copy application
+# Copy the Laravel application
 COPY . .
 
-# Laravel needs these directories writable
+# Make Laravel directories writable
 RUN chmod -R 775 storage bootstrap/cache
 
-# Render provides the PORT environment variable
-CMD sh -c "php artisan optimize && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"
+# Run Laravel Composer scripts now that the application exists
+RUN composer dump-autoload --optimize
+
+# Optimize Laravel
+RUN php artisan optimize
+
+# Render provides PORT
+CMD php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
