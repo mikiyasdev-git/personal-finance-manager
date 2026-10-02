@@ -21,7 +21,7 @@ WORKDIR /var/www/html
 # Copy Composer files first for better Docker layer caching
 COPY composer.json composer.lock ./
 
-# Install production PHP dependencies without running Laravel scripts yet
+# Install production PHP dependencies
 RUN composer install \
     --no-dev \
     --no-interaction \
@@ -32,14 +32,11 @@ RUN composer install \
 # Copy the Laravel application
 COPY . .
 
-# Generate optimized Composer autoloader now that the application exists
+# Generate optimized Composer autoloader
 RUN composer dump-autoload --optimize
 
 # Make Laravel storage and cache directories writable
 RUN chmod -R 775 storage bootstrap/cache
 
-# Optimize Laravel for production
-RUN php artisan optimize
-
-# Render provides the PORT environment variable
+# Start Laravel using Render's PORT
 CMD php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
